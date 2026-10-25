@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AutoSilixManifest",
+  "description": "Validation schema for AutoSilix execution manifests.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "run_id",
+    "design_name",
+    "status",
+    "start_time",
+    "config_hash",
+    "stages",
+    "environment"
+  ],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "run_id": { "type": "string" },
+    "design_name": { "type": "string" },
+    "status": {
+      "type": "string",
+      "enum": ["PENDING", "RUNNING", "PASS", "FAIL", "INTERRUPTED"]
+    },
+    "start_time": { "type": "string", "format": "date-time" },
+    "end_time": { "type": ["string", "null"] },
+    "duration_seconds": { "type": ["number", "null"] },
+    "config_hash": { "type": "string" },
+    "git_commit": { "type": ["string", "null"] },
+    "git_dirty": { "type": ["boolean", "null"] },
+    "environment": {
+      "type": "object",
+      "properties": {
+        "os": { "type": "string" },
+        "python_version": { "type": "string" },
+        "hostname": { "type": "string" },
+        "tools": { "type": "object" }
+      }
+    },
+    "stages": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["state", "duration_seconds", "exit_code"],
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": ["PENDING", "RUNNING", "PASS", "FAIL", "SKIPPED", "NOT_RUN", "UNSUPPORTED"]
+          },
+          "start_time": { "type": ["string", "null"] },
+          "end_time": { "type": ["string", "null"] },
+          "duration_seconds": { "type": "number" },
+          "exit_code": { "type": ["integer", "null"] },
+          "log_file": { "type": ["string", "null"] },
+          "error_summary": { "type": ["string", "null"] },
+          "artifacts": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["value", "stage", "source_file"],
+        "properties": {
+          "value": {},
+          "unit": { "type": ["string", "null"] },
+          "stage": { "type": "string" },
+          "source_file": { "type": "string" },
+          "parser_version": { "type": "string" }
+        }
+      }
+    },
+    "errors": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "warnings": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

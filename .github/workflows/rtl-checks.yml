@@ -1,0 +1,37 @@
+name: RTL Checks & Simulation
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  simulate:
+    name: Functional RTL Verification (Icarus Verilog)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Icarus Verilog
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iverilog
+
+      - name: Verify Sequence Detector Testbench
+        run: |
+          iverilog -o seq_sim.vvp -g2012 \
+            designs/sequence_detector/rtl/sequence_detector.v \
+            designs/sequence_detector/tb/tb_sequence_detector.v
+          vvp seq_sim.vvp | tee sim_seq.log
+          grep "TEST PASSED" sim_seq.log
+
+      - name: Verify ALU Accumulator Testbench
+        run: |
+          iverilog -o alu_sim.vvp -g2012 \
+            designs/alu_accumulator/rtl/alu_accumulator.v \
+            designs/alu_accumulator/tb/tb_alu_accumulator.v
+          vvp alu_sim.vvp | tee sim_alu.log
+          grep "TEST PASSED" sim_alu.log

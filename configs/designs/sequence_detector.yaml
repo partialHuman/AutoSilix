@@ -1,0 +1,60 @@
+schema_version: "1.0.0"
+
+design:
+  name: "sequence_detector"
+  top_module: "sequence_detector"
+  rtl_files:
+    - "designs/sequence_detector/rtl/sequence_detector.v"
+  tb_files:
+    - "designs/sequence_detector/tb/tb_sequence_detector.v"
+  constraints_file: "designs/sequence_detector/constraints/sky130_constraints.sdc"
+
+pdk:
+  name: "sky130"
+  variant: "sky130_fd_sc_hd"
+  std_cell_library: "sky130_fd_sc_hd"
+  pdk_root: "/usr/local/share/pdk"
+
+constraints:
+  clock_period: 10.0
+  clock_port: "clk"
+  clock_uncertainty: 0.25
+  input_delay: 2.0
+  output_delay: 2.0
+  time_unit: "ns"
+  cap_unit: "pF"
+
+physical:
+  core_utilization: 0.35
+  core_aspect_ratio: 1.0
+  core_margin: 10.0
+
+synthesis:
+  strategy: "AREA"
+  flatten: true
+  abc_clock_period: 10000.0
+
+flow:
+  stages:
+    - rtl_simulation
+    - synthesis
+    - floorplan
+    - power_planning
+    - placement
+    - cts
+    - routing
+    - sta
+    - gds_export
+  timeouts:
+    rtl_simulation: 60
+    synthesis: 120
+    floorplan: 120
+    power_planning: 120
+    placement: 180
+    cts: 180
+    routing: 300
+    sta: 120
+    drc: 180
+    lvs: 180
+    gds_export: 120
+  fail_fast: true

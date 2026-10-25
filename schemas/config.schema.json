@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AutoSilixConfig",
+  "description": "Validation schema for AutoSilix design and workflow configurations.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "design",
+    "pdk",
+    "flow"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "enum": ["1.0.0", "1.0"]
+    },
+    "design": {
+      "type": "object",
+      "required": ["name", "top_module", "rtl_files"],
+      "properties": {
+        "name": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+$" },
+        "top_module": { "type": "string", "pattern": "^[a-zA-Z0-9_]+$" },
+        "rtl_files": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        },
+        "tb_files": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "constraints_file": { "type": "string" }
+      }
+    },
+    "pdk": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string" },
+        "variant": { "type": "string" },
+        "std_cell_library": { "type": "string" },
+        "pdk_root": { "type": "string" }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "properties": {
+        "clock_period": { "type": "number", "exclusiveMinimum": 0 },
+        "clock_port": { "type": "string" },
+        "clock_uncertainty": { "type": "number", "minimum": 0 },
+        "input_delay": { "type": "number" },
+        "output_delay": { "type": "number" },
+        "time_unit": { "type": "string", "default": "ns" },
+        "cap_unit": { "type": "string", "default": "pF" }
+      }
+    },
+    "physical": {
+      "type": "object",
+      "properties": {
+        "core_utilization": { "type": "number", "minimum": 0.01, "maximum": 0.99 },
+        "core_aspect_ratio": { "type": "number", "exclusiveMinimum": 0 },
+        "core_margin": { "type": "number", "minimum": 0 },
+        "die_area": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "core_area": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 4,
+          "maxItems": 4
+        }
+      }
+    },
+    "synthesis": {
+      "type": "object",
+      "properties": {
+        "strategy": { "type": "string", "enum": ["AREA", "DELAY", "BALANCED", "DEFAULT"] },
+        "flatten": { "type": "boolean" },
+        "abc_clock_period": { "type": "number" }
+      }
+    },
+    "flow": {
+      "type": "object",
+      "properties": {
+        "stages": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "rtl_simulation",
+              "synthesis",
+              "floorplan",
+              "power_planning",
+              "placement",
+              "cts",
+              "routing",
+              "sta",
+              "drc",
+              "lvs",
+              "gds_export"
+            ]
+          }
+        },
+        "timeouts": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 1 }
+        },
+        "fail_fast": { "type": "boolean", "default": true }
+      }
+    }
+  },
+  "additionalProperties": false
+}

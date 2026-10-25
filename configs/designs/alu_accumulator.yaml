@@ -1,0 +1,60 @@
+schema_version: "1.0.0"
+
+design:
+  name: "alu_accumulator"
+  top_module: "alu_accumulator"
+  rtl_files:
+    - "designs/alu_accumulator/rtl/alu_accumulator.v"
+  tb_files:
+    - "designs/alu_accumulator/tb/tb_alu_accumulator.v"
+  constraints_file: "designs/alu_accumulator/constraints/sky130_constraints.sdc"
+
+pdk:
+  name: "sky130"
+  variant: "sky130_fd_sc_hd"
+  std_cell_library: "sky130_fd_sc_hd"
+  pdk_root: "/usr/local/share/pdk"
+
+constraints:
+  clock_period: 20.0
+  clock_port: "clk"
+  clock_uncertainty: 0.30
+  input_delay: 3.0
+  output_delay: 3.0
+  time_unit: "ns"
+  cap_unit: "pF"
+
+physical:
+  core_utilization: 0.40
+  core_aspect_ratio: 1.0
+  core_margin: 10.0
+
+synthesis:
+  strategy: "BALANCED"
+  flatten: true
+  abc_clock_period: 20000.0
+
+flow:
+  stages:
+    - rtl_simulation
+    - synthesis
+    - floorplan
+    - power_planning
+    - placement
+    - cts
+    - routing
+    - sta
+    - gds_export
+  timeouts:
+    rtl_simulation: 60
+    synthesis: 180
+    floorplan: 120
+    power_planning: 120
+    placement: 180
+    cts: 180
+    routing: 300
+    sta: 120
+    drc: 180
+    lvs: 180
+    gds_export: 120
+  fail_fast: true

@@ -1,0 +1,50 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Testing & Linting
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+.mypy_cache/
+
+# AutoSilix Run Artifacts (do not commit large generated tool outputs)
+runs/
+results/
+*.vcd
+*.vpd
+*.log
+*.rpt
+*.gds
+*.lef
+*.def
+*.lib
+
+# Keep example fixtures in tests/fixtures or sample runs
+!tests/fixtures/**
+!tests/fixtures/**/*.log
+!tests/fixtures/**/*.rpt
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store

@@ -1,0 +1,929 @@
+# MASTER BUILD PROMPT — SILICAFORGE
+
+## 1. Your Role
+
+Act as a senior EDA infrastructure engineer, digital-design verification engineer, Python software architect, physical-design automation engineer, and DevOps engineer.
+
+Your task is to design, implement, test, document, and validate a complete software project named **SilicaForge**.
+
+Do not merely provide suggestions, sample snippets, pseudocode, or a proposed architecture. Work directly in the currently opened VS Code workspace, create the actual files, implement the functionality, execute available tests, investigate failures, and continue until the project reaches the highest verifiable completion level permitted by the environment.
+
+You are responsible for maintaining a coherent, working codebase throughout development.
+
+## 2. Source of Truth
+
+First locate and thoroughly inspect the supplied development document:
+
+`AutoSilicon_Development_Document.docx`
+
+The filename may contain a suffix such as `(1)`. Locate the actual file rather than assuming its exact name.
+
+Treat this document as the initial technical specification. Preserve its core requirements:
+
+- Configuration-driven RTL-to-GDSII workflow automation.
+- RTL validation and functional simulation.
+- Synthesis using Yosys.
+- Physical implementation using a compatible OpenROAD-based flow.
+- An initial sequence-detector design.
+- A candidate SkyWater SKY130 platform, with GF180MCU considered later.
+- Artifact management, run isolation, logs, manifests, and failure reporting.
+- PPA metric extraction and comparison.
+- DRC/LVS checks where properly supported.
+- Python, Tcl, Make, Git, and GitHub Actions.
+- Reproducible execution, transparent limitations, and useful documentation.
+
+Incorporate the improvements identified during the review:
+
+1. Establish a small, working MVP before implementing advanced functionality.
+2. Separate workflow orchestration from tool-specific adapters.
+3. Define versioned configuration and manifest schemas.
+4. Implement explicit stage states, dependencies, timeouts, and error handling.
+5. Preserve raw tool reports and associate every metric with its source.
+6. Prevent misleading comparisons between incompatible runs.
+7. Distinguish orchestration success from RTL, timing, routing, DRC, and LVS results.
+8. Test failure conditions, not just successful execution.
+9. Pin and document the tested toolchain.
+10. Avoid unsupported tape-out-readiness claims.
+
+If the document conflicts with a technically necessary implementation detail, document the discrepancy and choose a defensible implementation. Do not silently discard requirements.
+
+## 3. Project Identity
+
+Use the following proposed identity:
+
+Project name: SilicaForge
+
+Formal description:
+
+**SilicaForge — Reproducible RTL-to-GDSII Automation and PPA Analysis Framework**
+
+Suggested tagline:
+
+"From RTL to layout, reproducibly."
+
+Before renaming an existing repository, inspect the workspace, Git status, and existing files. Do not overwrite unrelated work or perform destructive changes merely to apply the new name.
+
+Use a consistent Python package name, CLI command, documentation title, and configuration naming scheme. Check whether the desired CLI command conflicts with existing tools installed in the environment.
+
+## 4. Operating Rules
+
+Follow these rules throughout implementation.
+
+### 4.1 Inspect before modifying
+
+- Inspect the current workspace and its directory structure.
+- Read the complete development document.
+- Inspect existing source code, configuration, Git status, and tests.
+- Identify existing work that should be preserved.
+- Reuse suitable existing components rather than rebuilding them unnecessarily.
+- Create an implementation plan with explicit milestones.
+- Record assumptions and unresolved decisions in project documentation.
+
+Do not delete, replace, or reorganize existing files without understanding their purpose.
+
+### 4.2 Work incrementally
+
+Implement one coherent milestone at a time.
+
+For every milestone:
+
+1. Implement the required functionality.
+2. Add or update automated tests.
+3. Execute the relevant tests.
+4. Fix regressions.
+5. Update documentation.
+6. Record actual results and remaining limitations.
+7. Continue to the next milestone when its prerequisites pass.
+
+Do not stop after creating the plan or repository skeleton.
+
+Do not ask me to approve routine implementation decisions. Make sensible, reversible engineering decisions and document them. Ask for input only when a decision requires unavailable credentials, a potentially destructive action, an external purchase, a licensing decision, or an essential user preference.
+
+### 4.3 Be truthful about validation
+
+Never claim a test passed unless you executed it and observed a successful result.
+
+Never fabricate EDA tool outputs, PPA metrics, GDSII files, DRC/LVS results, screenshots, or successful integration runs.
+
+If a tool is unavailable, implement and test the software components that do not depend on it, report the missing prerequisite, and continue with other feasible work.
+
+Mocks may be used for unit tests, but must never be presented as real EDA integration results.
+
+### 4.4 Preserve safety and reproducibility
+
+- Never overwrite previous run artifacts by default.
+- Never delete user data to make tests pass.
+- Never embed credentials in source code.
+- Never download and execute unverified scripts without inspection.
+- Never claim that GDSII export establishes manufacturing readiness.
+- Do not run long or resource-intensive physical-design flows without assessing their expected cost and the environment's capabilities.
+- Do not modify system-wide tool installations without authorization.
+
+## 5. Target Architecture
+
+Build SilicaForge as a modular Python application that orchestrates existing EDA tools.
+
+It is not a new synthesis engine, place-and-route engine, transistor simulator, or signoff engine.
+
+Its core value is reliable orchestration, configuration management, artifact provenance, failure handling, metrics extraction, experiment tracking, and reporting.
+
+Use a sequential stage dependency graph for the initial version. Design interfaces so a more advanced workflow graph can be introduced later without requiring a complete rewrite.
+
+The architecture must contain the following components.
+
+### 5.1 CLI
+
+Implement a command-line interface using a maintained Python CLI library such as Typer, or use another suitable library if the workspace already has a consistent choice.
+
+The intended interface should support commands equivalent to:
+
+```bash
+silicaforge --help
+
+silicaforge validate \
+  --config configs/designs/sequence_detector.yaml
+
+silicaforge run \
+  --config configs/designs/sequence_detector.yaml
+
+silicaforge status \
+  --run-id RUN_ID
+
+silicaforge report \
+  --run-id RUN_ID
+
+silicaforge compare \
+  --runs RUN_ID_A RUN_ID_B
+
+silicaforge tools
+```
+
+These are target commands, not existing implementations. Implement and test the actual syntax.
+
+Include appropriate exit codes, helpful error messages, structured logging, and command help.
+
+Do not make the CLI depend on the current working directory when it can reliably resolve project paths.
+
+### 5.2 Configuration manager
+
+Implement versioned YAML configuration files.
+
+Validate:
+
+- Schema version.
+- Design name and source paths.
+- Testbench and simulator settings.
+- Synthesis options.
+- Platform and PDK selection.
+- Timing constraints.
+- Clock period and units.
+- I/O delays and loads when required by the flow.
+- Physical-design parameters.
+- Output locations.
+- Enabled workflow stages.
+- Tool executable availability when execution requires it.
+
+Reject malformed or invalid configurations before starting EDA processes.
+
+Distinguish configuration errors from missing optional tools and execution failures.
+
+Use a documented schema. JSON Schema or an equivalent validated Python model is acceptable.
+
+Do not allow arbitrary configuration values to silently alter execution behavior.
+
+### 5.3 Workflow engine
+
+Implement a stage-oriented workflow engine.
+
+Each stage must have:
+
+- A stable stage identifier.
+- Declared inputs and outputs.
+- Prerequisites.
+- Execution status.
+- Start time, end time, and duration.
+- Captured stdout and stderr.
+- Exit code.
+- A machine-readable error summary.
+- Validation of expected outputs.
+- References to generated artifacts.
+
+Use clearly documented states, including:
+
+- `PENDING`
+- `RUNNING`
+- `PASS`
+- `FAIL`
+- `SKIPPED`
+- `NOT_RUN`
+- `UNSUPPORTED`
+
+You may introduce additional states if necessary, but define their semantics.
+
+The engine must support:
+
+- Sequential dependency enforcement.
+- Configurable per-stage timeouts.
+- Graceful interruption where practical.
+- Nonzero exit-code handling.
+- Detection of missing expected outputs.
+- Preservation of partial artifacts after failures.
+- Clear distinction between a failed stage and a skipped downstream stage.
+- Optional fail-fast behavior.
+- Safe reruns using new run identifiers by default.
+
+Do not silently resume a stage using stale artifacts. Any reuse or resume feature must verify the relevant inputs and artifact provenance.
+
+### 5.4 Tool adapters
+
+Implement isolated adapters for:
+
+- RTL simulation or linting.
+- Yosys synthesis.
+- OpenROAD physical-design execution.
+
+Create clear adapter interfaces so each tool can be replaced or extended independently.
+
+Use argument arrays and subprocess APIs instead of constructing unsafe shell command strings.
+
+Capture stdout and stderr, process return codes, execution duration, and tool version information.
+
+Do not assume that every physical-design flow uses the same Tcl commands, directory layout, platform variables, or report format.
+
+Where possible, use a supported, existing platform reference flow instead of inventing a new flow from scratch.
+
+For each supported tool, implement:
+
+- Availability detection.
+- Version detection.
+- Input validation.
+- Command preparation.
+- Execution.
+- Output validation.
+- Error reporting.
+- Relevant report discovery.
+
+Provide clear error messages when executables are missing.
+
+Do not pretend that a tool adapter can run a stage when its required external tool or configuration is absent.
+
+### 5.5 Artifact manager
+
+Create unique, isolated run directories.
+
+Use a structure equivalent to:
+
+```text
+runs/
+└── sequence_detector/
+    └── RUN_ID/
+        ├── manifest.json
+        ├── config/
+        ├── logs/
+        ├── reports/
+        ├── netlists/
+        ├── databases/
+        ├── layout/
+        └── metrics/
+```
+
+The exact layout may be adjusted to fit the actual EDA flow, but document the final convention.
+
+The artifact manager must:
+
+- Prevent accidental run-directory collisions.
+- Preserve the effective configuration snapshot.
+- Record tool and platform versions.
+- Record source revision where available.
+- Compute configuration and artifact hashes where useful.
+- Preserve raw logs and reports.
+- Record output paths relative to the run directory where practical.
+- Identify incomplete and failed runs.
+- Avoid committing large generated outputs by default.
+
+Never claim a layout or netlist exists solely because a stage was configured to generate one. Verify the actual file and its basic validity.
+
+### 5.6 Manifest and provenance
+
+Define a versioned manifest schema.
+
+Include, where available:
+
+- Schema version.
+- Run ID.
+- Design identifier.
+- Start and completion timestamps.
+- Overall orchestration status.
+- Per-stage status.
+- Effective configuration and its hash.
+- Source revision.
+- Dirty working-tree information where available.
+- Operating system and relevant environment information.
+- Tool versions.
+- PDK/platform identity and revision.
+- Timing constraints and units.
+- Artifact paths and hashes.
+- Metric values and units.
+- Metric source-report references.
+- Errors and warnings.
+- Explicit unavailable or unsupported checks.
+
+Do not store secrets or sensitive environment values in manifests.
+
+Ensure a manifest remains useful after a failed or interrupted run.
+
+### 5.7 Metrics and report engine
+
+Implement metrics extraction separately from workflow execution.
+
+Initially support the metrics actually emitted by the selected reference flow, including where available:
+
+- Synthesized cell area.
+- Placed cell area.
+- Core and die area.
+- Utilization.
+- Clock target.
+- Setup slack.
+- Worst negative slack.
+- Critical-path delay.
+- Buffer counts.
+- Congestion indicators.
+- Unrouted-net counts.
+- Routing violations.
+- Dynamic and leakage power when valid data exists.
+- DRC/LVS outcomes when supported.
+
+Every metric must have:
+
+- A name.
+- A numeric value or an explicit unavailable state.
+- Units where applicable.
+- A source stage.
+- A source report or artifact.
+- An extraction method or parser version.
+- Relevant analysis conditions, such as timing corner, when available.
+
+Do not convert missing values to zero.
+
+Do not mix pre-route and post-route timing without identifying the distinction.
+
+Do not report power as meaningful when the required libraries, activity information, and analysis conditions are missing.
+
+Preserve raw reports even when a parser fails.
+
+Implement robust report parsing with tests for malformed, incomplete, and changed report formats.
+
+Generate:
+
+- A machine-readable JSON summary.
+- A CSV metrics export.
+- A human-readable Markdown report.
+- A comparison report for compatible runs.
+
+A visual dashboard is optional and should not delay a functioning CLI.
+
+### 5.8 PPA experiment management
+
+After reliable single runs work, add experiment support.
+
+Allow controlled variations of selected parameters such as:
+
+- Clock period.
+- Core utilization.
+- Supported synthesis options.
+- Equivalent RTL variants.
+- Later, pipeline or architecture variants.
+
+Store each experiment as a reproducible configuration and run.
+
+Provide comparison logic that:
+
+- Checks PDK/platform compatibility.
+- Checks relevant toolchain compatibility.
+- Identifies differing constraints.
+- Identifies differing implementation stages.
+- Identifies missing metrics.
+- Preserves the provenance of each result.
+- Flags incomparable measurements instead of producing misleading conclusions.
+
+Do not claim a universal optimum based on a small experiment set.
+
+Automated parameter sweeps should be introduced only after single-run reproducibility and metrics validation work correctly.
+
+## 6. Initial RTL Design
+
+Create a small sequence-detector example as the initial RTL design.
+
+Implement synthesizable Verilog or SystemVerilog compatible with the chosen simulator and synthesis flow.
+
+Define its behavior explicitly before coding:
+
+- Target bit sequence.
+- Clocking behavior.
+- Reset polarity and synchronous/asynchronous semantics.
+- Overlapping versus non-overlapping detection.
+- Output behavior.
+- Handling of reset during a partially detected sequence.
+
+Use a documented example sequence, such as `1011`, unless the existing development document specifies a different sequence.
+
+Create a self-checking testbench with directed tests for:
+
+- Successful detection.
+- Nonmatching sequences.
+- Overlapping matches where applicable.
+- Reset behavior.
+- Back-to-back input patterns.
+- Boundary conditions.
+
+Run the simulator and verify the testbench before treating the RTL as validated.
+
+Keep functional verification results separate from synthesis and physical-design results.
+
+If the document or workspace already specifies a sequence-detector implementation, inspect it and preserve its intended behavior rather than arbitrarily replacing it.
+
+## 7. EDA Toolchain and PDK Strategy
+
+The initial candidate environment is Ubuntu Linux, optionally using Docker.
+
+The initial toolchain candidates are:
+
+- Icarus Verilog or Verilator for RTL validation.
+- Yosys for synthesis.
+- OpenROAD for physical implementation.
+- SkyWater SKY130 as the initial candidate platform.
+- KLayout for layout inspection.
+- Magic and/or other properly configured tools for applicable physical checks.
+- Python, Tcl and Make for orchestration and flow scripts.
+
+Treat GF180MCU as a later platform-compatibility target.
+
+Before building custom orchestration around the physical-design flow:
+
+1. Inspect available tools and versions.
+2. Check operating system and architecture.
+3. Check available memory, disk space, and container support.
+4. Identify a supported reference flow.
+5. Verify that the flow and platform files are compatible.
+6. Record relevant licenses and terms.
+7. Run the reference flow on its supported example.
+8. Preserve the actual logs and reports.
+9. Document which stages completed successfully.
+
+Do not assume that installing Yosys and OpenROAD alone establishes a working SKY130 flow.
+
+Do not assume that Docker is installed or that the current environment has permission to run containers.
+
+If the required flow is unavailable, build the framework independently, implement mocks for unit tests, document the exact missing prerequisites, and provide a reproducible setup guide.
+
+Never fabricate an end-to-end EDA success result.
+
+## 8. Physical Design and Verification Semantics
+
+Model physical-design results separately from orchestration results.
+
+For example, the framework may report that the workflow engine completed successfully while a timing check failed. This must remain representable in the result model.
+
+Track the status of:
+
+- RTL simulation.
+- Synthesis.
+- Floorplanning.
+- Power planning.
+- Placement.
+- Clock-tree synthesis.
+- Routing.
+- Static timing analysis.
+- DRC.
+- LVS.
+- GDSII export.
+
+Some stages may be unsupported or not applicable to a particular flow. Represent this explicitly.
+
+Run DRC and LVS only when the appropriate tool, technology files, rule decks, and flow are correctly configured.
+
+Document the scope and limitations of each check.
+
+A generated GDSII file is not proof of tape-out readiness. Never make foundry acceptance, manufacturing readiness, signoff, or silicon correctness claims that have not been established.
+
+## 9. Repository Structure
+
+Create a clean, professional repository broadly following this layout:
+
+```text
+silicaforge/
+├── README.md
+├── LICENSE
+├── pyproject.toml
+├── Makefile
+├── .gitignore
+├── .editorconfig
+├── .pre-commit-config.yaml
+├── configs/
+│   ├── default.yaml
+│   └── designs/
+│       └── sequence_detector.yaml
+├── schemas/
+│   ├── config.schema.json
+│   └── manifest.schema.json
+├── designs/
+│   └── sequence_detector/
+│       ├── rtl/
+│       ├── tb/
+│       ├── constraints/
+│       └── README.md
+├── src/
+│   └── silicaforge/
+│       ├── __init__.py
+│       ├── cli.py
+│       ├── config.py
+│       ├── workflow.py
+│       ├── runner.py
+│       ├── stages.py
+│       ├── artifacts.py
+│       ├── manifest.py
+│       ├── metrics.py
+│       ├── report.py
+│       ├── compare.py
+│       ├── toolchain.py
+│       ├── exceptions.py
+│       └── adapters/
+│           ├── __init__.py
+│           ├── base.py
+│           ├── simulator.py
+│           ├── yosys.py
+│           └── openroad.py
+├── flows/
+│   └── platform-specific/
+├── tests/
+│   ├── unit/
+│   ├── integration/
+│   └── fixtures/
+├── docs/
+│   ├── architecture.md
+│   ├── setup.md
+│   ├── configuration.md
+│   ├── constraints.md
+│   ├── workflow.md
+│   ├── metrics.md
+│   ├── testing.md
+│   ├── troubleshooting.md
+│   ├── limitations.md
+│   └── development-roadmap.md
+├── scripts/
+├── .github/
+│   └── workflows/
+│       ├── tests.yml
+│       └── rtl-checks.yml
+└── runs/
+```
+
+This is a proposed structure, not a requirement to create empty files for every item immediately.
+
+Adjust the structure to avoid unnecessary abstractions. Every implemented module should have a real responsibility.
+
+Generated run artifacts should normally be excluded from Git. Keep only deliberately selected, small demonstration outputs in version control.
+
+If the workspace already contains a useful repository, adapt it rather than destructively replacing it.
+
+## 10. Required Testing
+
+Build a meaningful automated test suite.
+
+### Unit tests
+
+Test:
+
+- Configuration parsing.
+- Schema validation.
+- Path resolution.
+- Invalid configuration handling.
+- Stage dependency validation.
+- Stage state transitions.
+- Subprocess success and failure.
+- Timeout behavior.
+- Log capture.
+- Manifest creation.
+- Hash generation.
+- Artifact isolation.
+- Missing output detection.
+- Report parsing.
+- Metric units.
+- Missing metric handling.
+- PPA compatibility checks.
+- Markdown, JSON and CSV report generation.
+- CLI exit codes.
+
+### Failure-injection tests
+
+Simulate:
+
+- Missing executables.
+- Missing RTL files.
+- Invalid YAML.
+- Invalid configuration values.
+- A tool returning a nonzero exit code.
+- A tool exceeding its timeout.
+- A missing expected netlist.
+- A malformed report.
+- A partially completed run.
+- A duplicate run identifier.
+- An interrupted workflow.
+
+Verify that errors are clear, the manifest reflects the failure, and existing artifacts are preserved.
+
+### Integration tests
+
+Test the CLI with mocked external tools.
+
+Where a real simulator is available, execute the actual RTL testbench.
+
+Where a real synthesis tool is available, execute a minimal synthesis run.
+
+Where the supported physical-design flow is available, run the smallest suitable reference-flow integration test.
+
+Do not make the entire Python unit-test suite fail merely because an optional external EDA tool is absent. Mark tool-dependent tests appropriately and report skipped prerequisites clearly.
+
+Do not hide genuine failures behind unconditional skips.
+
+## 11. Code Quality and Developer Experience
+
+Use modern Python packaging and type hints.
+
+Choose maintained dependencies with compatible versions and declare them in the project metadata.
+
+Use pytest for testing and Ruff for linting and formatting unless existing project conventions justify alternatives.
+
+Add:
+
+- Useful type annotations.
+- Clear exception classes.
+- Consistent logging.
+- Sensible module boundaries.
+- Docstrings for public APIs.
+- Tests for important behavior.
+- Dependency constraints or lock files appropriate to the chosen packaging strategy.
+
+Avoid:
+
+- Giant monolithic Python files.
+- Duplicated tool-execution logic.
+- Hardcoded machine-specific paths.
+- Silent exception swallowing.
+- Unbounded subprocess execution.
+- Global mutable state.
+- Unnecessary dependencies.
+- Unimplemented placeholder functions disguised as working features.
+- Broad catch-all exception handlers that conceal errors.
+
+Use dependency injection or another lightweight approach to make external tool execution testable.
+
+## 12. Documentation Deliverables
+
+Create a comprehensive README with:
+
+1. Project description.
+2. Problem statement.
+3. Key features.
+4. Architecture diagram.
+5. Workflow diagram.
+6. Supported and planned functionality.
+7. Toolchain prerequisites.
+8. Installation instructions.
+9. Quick-start commands.
+10. Example configuration.
+11. Example test execution.
+12. Example run report using real data or clearly labeled sample data.
+13. PPA methodology.
+14. Testing instructions.
+15. Known limitations.
+16. Development roadmap.
+17. Contribution guidance.
+18. License information consistent with the actual LICENSE file.
+
+Use Mermaid diagrams where appropriate.
+
+Also document:
+
+- Installation and environment setup.
+- Supported tool and platform combinations.
+- Configuration schema.
+- Stage contracts.
+- Artifact and manifest formats.
+- Metrics and their provenance.
+- Error handling.
+- Testing strategy.
+- Troubleshooting.
+- Physical verification scope.
+- Reproducibility limitations.
+
+Clearly distinguish implemented features from planned features.
+
+If a feature is incomplete, say so rather than describing it as operational.
+
+## 13. GitHub Actions and CI
+
+Implement lightweight CI workflows that can run in standard GitHub-hosted environments.
+
+The initial CI pipeline should:
+
+- Install the Python package.
+- Run linting and formatting checks.
+- Run unit tests.
+- Test CLI installation and basic commands.
+- Validate example configurations.
+- Check documentation or schema consistency where practical.
+- Run RTL checks when the simulator can be installed reliably in CI.
+
+Do not automatically run a long, resource-intensive physical-design flow on every commit.
+
+If a physical-design integration workflow is added, make its prerequisites and resource requirements explicit.
+
+Do not publish fabricated release artifacts or pretend that CI passed without actual execution.
+
+## 14. Development Phases
+
+Implement the project in the following order.
+
+### Phase 0 — Workspace and environment audit
+
+- Inspect the source document.
+- Inspect the workspace and Git state.
+- Inventory available Python, simulation, synthesis, physical-design and layout tools.
+- Verify the proposed project naming and existing directory structure.
+- Write an implementation plan and record unresolved prerequisites.
+
+Exit condition: a documented baseline and an actionable plan.
+
+### Phase 1 — Working RTL baseline
+
+- Implement or validate the sequence detector.
+- Create a self-checking testbench.
+- Run functional simulation if the simulator is available.
+- Record actual results.
+
+Exit condition: a demonstrably correct RTL baseline, or a precise explanation of the missing simulator prerequisite.
+
+### Phase 2 — Python framework foundation
+
+- Set up package metadata.
+- Implement the CLI.
+- Implement configuration validation.
+- Implement stage contracts and dependency ordering.
+- Implement subprocess management and logging.
+- Implement run isolation and manifests.
+- Add mocked-tool tests.
+
+Exit condition: a CLI can validate configurations and execute a complete mocked workflow with correct status reporting.
+
+### Phase 3 — Real synthesis integration
+
+- Detect Yosys.
+- Implement the synthesis adapter.
+- Validate expected netlist outputs.
+- Capture synthesis reports.
+- Add integration tests where the tool is available.
+
+Exit condition: a real synthesis run is demonstrated when supported, with honest prerequisite reporting otherwise.
+
+### Phase 4 — Physical-design reference flow
+
+- Validate the supported OpenROAD platform flow.
+- Execute a known-good reference example.
+- Integrate SilicaForge with the validated flow.
+- Capture intermediate and final artifacts.
+- Record the actual physical-stage outcomes.
+- Export GDSII when the configured flow supports it.
+
+Exit condition: documented evidence of the stages that actually ran and their outcomes. Do not substitute mocked physical results.
+
+### Phase 5 — Metrics and reporting
+
+- Parse real reports.
+- Implement JSON and CSV exports.
+- Generate Markdown summaries.
+- Implement provenance tracking.
+- Implement comparison compatibility checks.
+- Test malformed and missing data.
+
+Exit condition: metrics can be traced back to source reports and incompatible comparisons are identified.
+
+### Phase 6 — Robustness and CI
+
+- Complete failure-injection tests.
+- Add timeouts and interruption handling.
+- Test manifest consistency.
+- Add CI workflows.
+- Improve troubleshooting documentation.
+
+Exit condition: automated tests pass and expected failures produce useful diagnostic evidence.
+
+### Phase 7 — Multi-design support and experiments
+
+- Add a second small design.
+- Confirm it can run through the same orchestration interfaces.
+- Add controlled PPA experiment configurations.
+- Add comparison reports.
+- Document compatibility boundaries.
+
+Exit condition: a second design works without redesigning the core orchestration layer.
+
+### Phase 8 — Release preparation
+
+- Audit the repository for unfinished placeholders.
+- Review license and dependency declarations.
+- Verify all documented commands.
+- Execute available test suites.
+- Review generated artifacts and `.gitignore`.
+- Write release notes.
+- Produce a final implementation and validation report.
+
+Exit condition: the implemented feature set, test evidence, known limitations and remaining prerequisites are clearly documented.
+
+## 15. Future Extensions
+
+Keep these outside the MVP unless the core milestones are already complete:
+
+- GF180MCU platform support.
+- Additional simulators and synthesis backends.
+- Advanced workflow graphs and parallel execution.
+- Automated experiment sweeps.
+- PPA regression thresholds.
+- Optional web dashboard.
+- Layout visualization integration.
+- Additional physical verification backends.
+- Future integration with a separately developed processor such as FlexRISC16.
+
+FlexRISC16 is a future optional integration target. Do not assume it already exists, depend on it for initial testing, or create fake integration results.
+
+Do not add AI-driven RTL rewriting or automated architecture generation to the initial implementation.
+
+## 16. Definition of Done
+
+The project is not complete merely because all expected files exist.
+
+Evaluate completion against these criteria:
+
+1. The Python package can be installed in the documented development environment.
+2. The CLI provides functional help and validates configurations.
+3. Invalid configurations fail before tool execution.
+4. The mocked workflow executes in the correct order.
+5. Failures and timeouts are reported correctly.
+6. Runs have isolated artifact directories.
+7. Manifests record stage outcomes and provenance.
+8. Unit tests cover critical components and failure paths.
+9. RTL simulation is demonstrated when a simulator is available.
+10. Real synthesis is demonstrated when Yosys is available.
+11. Physical-design results are reported only when the supported flow actually runs.
+12. Metric extraction preserves source references and units.
+13. Incompatible PPA comparisons are flagged.
+14. CI workflows and documentation are present.
+15. All implemented commands and examples are checked against the actual code.
+16. Remaining limitations and missing prerequisites are explicit.
+17. No unverified manufacturing-readiness or signoff claims are made.
+
+Report completion by category rather than using a single misleading percentage.
+
+For example:
+
+- Python framework: complete / partial / blocked.
+- Unit tests: passed / failed / not executed.
+- RTL verification: passed / failed / blocked.
+- Synthesis integration: passed / failed / blocked.
+- Physical-design flow: passed / failed / blocked.
+- DRC/LVS: passed / failed / unsupported / not run.
+- PPA reporting: complete / partial / blocked.
+- CI: verified / unverified.
+
+Only use a status supported by actual evidence.
+
+## 17. Final Execution Instructions
+
+Begin now.
+
+First inspect the actual VS Code workspace and development document. Then create the implementation plan and start Phase 0.
+
+Continue implementing the project without stopping after the planning stage.
+
+After each milestone, run the available tests, fix failures, and continue.
+
+If an external tool is unavailable, do not stop all development. Finish the components that can be implemented independently, create appropriate mocked tests, document the missing prerequisite, and continue to the next feasible task.
+
+If the execution environment has time or context limits, prioritize a working Python framework, real tests, the RTL baseline, and a clearly documented physical-design integration boundary. Preserve the current state and record the exact next steps.
+
+Do not claim completion until the available evidence supports it.
+
+At the end, provide a concise engineering report containing:
+
+- Repository structure created or modified.
+- Features actually implemented.
+- Commands actually executed.
+- Tests actually run and their outcomes.
+- External tools detected and their versions.
+- Any real RTL, synthesis or physical-design runs completed.
+- Important files to review.
+- Known bugs and limitations.
+- Missing prerequisites.
+- The exact next steps needed to reach the next milestone.
+
+**The goal is a functioning, tested, maintainable SilicaForge implementation—not merely a polished specification or a large collection of generated files.**
