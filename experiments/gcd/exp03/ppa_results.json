@@ -1,0 +1,122 @@
+{
+  "experiment": "exp03",
+  "title": "Unified Comparator-Subtractor Optimization (17-bit Zero-Extended Shared Subtractor)",
+  "design": "gcd",
+  "platform": "sky130hd",
+  "flow_variant": "exp03",
+  "clock_period_target_ns": 1.10,
+  "clock_uncertainty_ns": null,
+  "clock_latency_ns": 0.290,
+  "input_delay_ns": 0.220,
+  "output_delay_ns": 0.220,
+  "rtl_sha256": "9175f15513c0705c44786cdb2c26fbc7bee9625e465db785ddd21c07d9086a4c",
+  "baseline_rtl_sha256": "7330ee37a6d4f8ab6ad4b5829a35a347c996ac32e1cfcd052352ecff2705eb91",
+  "functional_verification": {
+    "testbench": "tests/rtl/tb_gcd.v",
+    "simulator": "Icarus Verilog",
+    "test_cases_run": 5,
+    "test_cases_passed": 5,
+    "equivalence_testbench": "tests/rtl/tb_unified_sub_equiv.v",
+    "equivalence_vectors_tested": 165802,
+    "equivalence_errors": 0,
+    "coverage_details": "Exhaustive 16x16 edge cross-product (256 pairs) + 10 directed boundary cases + exhaustive 8-bit space [0..255]x[0..255] (65,536 pairs) + 100,000 random 16-bit pairs",
+    "status": "PASS"
+  },
+  "synthesis_observations": {
+    "standalone_comparator_eliminated": true,
+    "shared_arithmetic_module": "ALU_16_0_16_0_17_unused_CO_X_HAN_CARLSON",
+    "duplicate_subtractors_found": 0,
+    "arithmetic_instance_name": "\\dpath.sub.diff_ext\\ALU_16_0_16_0_17_unused_CO_X_HAN_CARLSON",
+    "synthesis_top_cell_area_um2": 2372.275,
+    "baseline_synthesis_top_cell_area_um2": 2313.469
+  },
+  "physical_metrics": {
+    "setup_wns_ns": -1.49106,
+    "setup_tns_ns": -64.6083,
+    "hold_wns_ns": 0.478748,
+    "hold_tns_ns": 0.0,
+    "fmax_mhz": 385.942,
+    "setup_violation_count": 58,
+    "hold_violation_count": 0,
+    "max_slew_violation_count": 0,
+    "max_cap_violation_count": 0,
+    "max_fanout_violation_count": 0,
+    "std_cell_area_um2": 4748.3,
+    "core_area_um2": 5955.71,
+    "die_area_um2": 6562.62,
+    "core_utilization_percent": 79.73,
+    "instance_count_stdcell": 508,
+    "total_instance_count": 892,
+    "timing_repair_buffer_count": 172,
+    "timing_repair_buffer_area_um2": 1475.16,
+    "clock_buffer_count": 6,
+    "clock_buffer_area_um2": 72.5696,
+    "sequential_cell_count": 35,
+    "sequential_cell_area_um2": 1024.73,
+    "multi_input_combinational_cell_count": 214,
+    "multi_input_combinational_cell_area_um2": 2059.48,
+    "clock_skew_setup_ns": 0.004562,
+    "clock_skew_hold_ns": 0.004562,
+    "power": {
+      "total_power_mw": 8.30813,
+      "internal_power_mw": 5.34962,
+      "switching_power_mw": 2.95851,
+      "leakage_power_uw": 0.00210621,
+      "valid_activity_vcd_provided": false,
+      "note": "Estimated by OpenROAD statistical switching model"
+    },
+    "routing_drc": {
+      "route_drc_violations": 0,
+      "unrouted_nets": 0,
+      "report_file": "5_route_drc.rpt",
+      "status": "CLEAN"
+    },
+    "gds": {
+      "file": "results/sky130hd/gcd/exp03/6_final.gds",
+      "size_bytes": 870300,
+      "status": "GENERATED"
+    }
+  },
+  "critical_path": {
+    "worst_reg2reg_path": {
+      "startpoint": "dpath.b_reg.out[0]$_DFFE_PP_",
+      "endpoint": "dpath.a_reg.out[0]$_DFFE_PP_",
+      "path_group": "core_clock",
+      "path_type": "max",
+      "data_arrival_time_ns": 2.63,
+      "data_required_time_ns": 1.14,
+      "slack_ns": -1.49,
+      "major_cells": [
+        "sky130_fd_sc_hd__edfxtp_1 (b_reg)",
+        "sky130_fd_sc_hd__xor2_1",
+        "sky130_fd_sc_hd__maj3_2",
+        "sky130_fd_sc_hd__a21oi_4",
+        "sky130_fd_sc_hd__o21ai_4",
+        "sky130_fd_sc_hd__xnor2_4",
+        "sky130_fd_sc_hd__buf_12 (place137)",
+        "sky130_fd_sc_hd__mux2i_2",
+        "sky130_fd_sc_hd__o21ai_1",
+        "sky130_fd_sc_hd__edfxtp_1 (a_reg)"
+      ]
+    },
+    "worst_output_path": {
+      "startpoint": "dpath.b_reg.out[0]$_DFFE_PP_",
+      "endpoint": "resp_msg[12]",
+      "path_group": "vclk_core_clock",
+      "path_type": "max",
+      "data_arrival_time_ns": 2.63,
+      "data_required_time_ns": 1.17,
+      "slack_ns": -1.46,
+      "major_cells": [
+        "sky130_fd_sc_hd__edfxtp_1 (b_reg)",
+        "sky130_fd_sc_hd__xor2_1",
+        "sky130_fd_sc_hd__maj3_2",
+        "sky130_fd_sc_hd__o21ai_4",
+        "sky130_fd_sc_hd__a31oi_2",
+        "sky130_fd_sc_hd__xor2_1",
+        "sky130_fd_sc_hd__clkdlybuf4s50_1 (output42)"
+      ]
+    }
+  }
+}
+
