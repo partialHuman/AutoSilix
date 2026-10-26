@@ -6,12 +6,14 @@ exp1_path = "eda/OpenROAD-flow-scripts/flow/logs/sky130hd/gcd/exp01/6_report.jso
 exp2_path = "eda/OpenROAD-flow-scripts/flow/logs/sky130hd/gcd/exp02/6_report.json"
 exp3_path = "eda/OpenROAD-flow-scripts/flow/logs/sky130hd/gcd/exp03/6_report.json"
 exp4_path = "eda/OpenROAD-flow-scripts/flow/logs/sky130hd/gcd/exp04/6_report.json"
+exp5_path = "eda/OpenROAD-flow-scripts/flow/logs/sky130hd/gcd/exp05/6_report.json"
 
 base = json.load(open(base_path, encoding="utf-8"))
 exp1 = json.load(open(exp1_path, encoding="utf-8"))
 exp2 = json.load(open(exp2_path, encoding="utf-8"))
 exp3 = json.load(open(exp3_path, encoding="utf-8"))
 exp4 = json.load(open(exp4_path, encoding="utf-8")) if os.path.exists(exp4_path) else None
+exp5 = json.load(open(exp5_path, encoding="utf-8")) if os.path.exists(exp5_path) else None
 
 metrics = [
     ("Setup WNS (ns)", "finish__timing__setup__ws", 1.0, "{:.4f}"),
@@ -35,9 +37,38 @@ metrics = [
     ("Core Area (um^2)", "finish__design__core__area", 1.0, "{:.2f}")
 ]
 
-if exp4:
-    header = f"| {'Metric':<25} | {'Baseline':<10} | {'Exp 01':<10} | {'Exp 02':<10} | {'Exp 03':<10} | {'Exp 04':<10} | {'Exp04 vs Base':<17} | {'Exp04 vs Exp01':<17} | {'Exp04 vs Exp03':<17} |"
-    sep = "|" + "-"*27 + "|" + "-"*12 + "|" + "-"*12 + "|" + "-"*12 + "|" + "-"*12 + "|" + "-"*12 + "|" + "-"*19 + "|" + "-"*19 + "|" + "-"*19 + "|"
+if exp5:
+    header = f"| {'Metric':<25} | {'Baseline':<10} | {'Exp 01':<10} | {'Exp 02':<10} | {'Exp 03':<10} | {'Exp 04':<10} | {'Exp 05':<10} | {'Exp05 vs Base':<17} | {'Exp05 vs Exp03':<17} |"
+    sep = "|" + "-"*27 + "|" + "-"*12 + "|" + "-"*12 + "|" + "-"*12 + "|" + "-"*12 + "|" + "-"*12 + "|" + "-"*12 + "|" + "-"*19 + "|" + "-"*19 + "|"
+    print(header)
+    print(sep)
+    for label, key, scale, fmt in metrics:
+        vb = base.get(key, 0) * scale
+        v1 = exp1.get(key, 0) * scale
+        v2 = exp2.get(key, 0) * scale
+        v3 = exp3.get(key, 0) * scale
+        v4 = exp4.get(key, 0) * scale if exp4 else 0
+        v5 = exp5.get(key, 0) * scale
+
+        delta_b = v5 - vb
+        pct_b = (delta_b / abs(vb) * 100.0) if vb != 0 else 0.0
+        delta_3 = v5 - v3
+        pct_3 = (delta_3 / abs(v3) * 100.0) if v3 != 0 else 0.0
+
+        sb = fmt.format(vb)
+        s1 = fmt.format(v1)
+        s2 = fmt.format(v2)
+        s3 = fmt.format(v3)
+        s4 = fmt.format(v4)
+        s5 = fmt.format(v5)
+
+        diff_b_str = f"{delta_b:+.4f} ({pct_b:+.1f}%)" if "{" in fmt and "d" not in fmt else f"{int(delta_b):+d} ({pct_b:+.1f}%)"
+        diff_3_str = f"{delta_3:+.4f} ({pct_3:+.1f}%)" if "{" in fmt and "d" not in fmt else f"{int(delta_3):+d} ({pct_3:+.1f}%)"
+
+        print(f"| {label:<25} | {sb:<10} | {s1:<10} | {s2:<10} | {s3:<10} | {s4:<10} | {s5:<10} | {diff_b_str:<17} | {diff_3_str:<17} |")
+elif exp4:
+    header = f"| {'Metric':<25} | {'Baseline':<10} | {'Exp 01':<10} | {'Exp 02':<10} | {'Exp 03':<10} | {'Exp 04':<10} | {'Exp04 vs Base':<17} | {'Exp04 vs Exp03':<17} |"
+    sep = "|" + "-"*27 + "|" + "-"*12 + "|" + "-"*12 + "|" + "-"*12 + "|" + "-"*12 + "|" + "-"*12 + "|" + "-"*19 + "|" + "-"*19 + "|"
     print(header)
     print(sep)
     for label, key, scale, fmt in metrics:
@@ -49,8 +80,6 @@ if exp4:
 
         delta_b = v4 - vb
         pct_b = (delta_b / abs(vb) * 100.0) if vb != 0 else 0.0
-        delta_1 = v4 - v1
-        pct_1 = (delta_1 / abs(v1) * 100.0) if v1 != 0 else 0.0
         delta_3 = v4 - v3
         pct_3 = (delta_3 / abs(v3) * 100.0) if v3 != 0 else 0.0
 
@@ -61,18 +90,6 @@ if exp4:
         s4 = fmt.format(v4)
 
         diff_b_str = f"{delta_b:+.4f} ({pct_b:+.1f}%)" if "{" in fmt and "d" not in fmt else f"{int(delta_b):+d} ({pct_b:+.1f}%)"
-        diff_1_str = f"{delta_1:+.4f} ({pct_1:+.1f}%)" if "{" in fmt and "d" not in fmt else f"{int(delta_1):+d} ({pct_1:+.1f}%)"
         diff_3_str = f"{delta_3:+.4f} ({pct_3:+.1f}%)" if "{" in fmt and "d" not in fmt else f"{int(delta_3):+d} ({pct_3:+.1f}%)"
 
-        print(f"| {label:<25} | {sb:<10} | {s1:<10} | {s2:<10} | {s3:<10} | {s4:<10} | {diff_b_str:<17} | {diff_1_str:<17} | {diff_3_str:<17} |")
-else:
-    header = f"| {'Metric':<25} | {'Baseline':<10} | {'Exp 01':<10} | {'Exp 02':<10} | {'Exp 03':<10} |"
-    sep = "|" + "-"*27 + "|" + "-"*12 + "|" + "-"*12 + "|" + "-"*12 + "|" + "-"*12 + "|"
-    print(header)
-    print(sep)
-    for label, key, scale, fmt in metrics:
-        vb = base.get(key, 0) * scale
-        v1 = exp1.get(key, 0) * scale
-        v2 = exp2.get(key, 0) * scale
-        v3 = exp3.get(key, 0) * scale
-        print(f"| {label:<25} | {fmt.format(vb):<10} | {fmt.format(v1):<10} | {fmt.format(v2):<10} | {fmt.format(v3):<10} |")
+        print(f"| {label:<25} | {sb:<10} | {s1:<10} | {s2:<10} | {s3:<10} | {s4:<10} | {diff_b_str:<17} | {diff_3_str:<17} |")

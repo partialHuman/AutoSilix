@@ -1,0 +1,111 @@
+{
+  "experiment": "exp05",
+  "title": "Synthesis-Driven Arithmetic Optimization (Native 16-bit Unified Subtractor/Comparator)",
+  "design": "gcd",
+  "platform": "sky130hd",
+  "flow_variant": "exp05",
+  "clock_period_target_ns": 1.10,
+  "clock_uncertainty_ns": null,
+  "clock_latency_ns": 0.290,
+  "input_delay_ns": 0.220,
+  "output_delay_ns": 0.220,
+  "rtl_sha256": "33010e9f486993dc983b4277e154bb51c04deb33f2301cba71b129d10ea37300",
+  "source_exp03_rtl_sha256": "9175f15513c0705c44786cdb2c26fbc7bee9625e465db785ddd21c07d9086a4c",
+  "baseline_rtl_sha256": "7330ee37a6d4f8ab6ad4b5829a35a347c996ac32e1cfcd052352ecff2705eb91",
+  "functional_verification": {
+    "testbench": "tests/rtl/tb_gcd.v",
+    "simulator": "Icarus Verilog",
+    "test_cases_run": 5,
+    "test_cases_passed": 5,
+    "equivalence_testbench": "tests/rtl/tb_unified_sub_equiv.v",
+    "equivalence_vectors_tested": 165802,
+    "equivalence_errors": 0,
+    "coverage_details": "Exhaustive 16x16 edge cross-product (256 pairs) + 10 directed boundary cases + exhaustive 8-bit space [0..255]x[0..255] (65,536 pairs) + 100,000 random 16-bit pairs",
+    "status": "PASS"
+  },
+  "synthesis_observations": {
+    "standalone_comparator_eliminated": true,
+    "shared_arithmetic_module": "ALU_16_0_16_0_16_unused_CO[14:0]_X_KOGGE_STONE",
+    "duplicate_subtractors_found": 0,
+    "arithmetic_instance_name": "_119_ (ALU_16_0_16_0_16)",
+    "synthesis_mechanism": "Replaces 17-bit zero-extended subtractor ({1'b0, in0} - {1'b0, in1}) with native 16-bit unsigned subtraction and comparison (out = in0 - in1; lt = in0 < in1) inside Subtractor module. Allows Yosys to map into a 16-bit ALU (ALU_16_0_16_0_16) with 4 prefix stages, avoiding the 17-bit power-of-2 expansion into 5 stages.",
+    "synthesis_top_cell_area_um2": 2313.469,
+    "baseline_synthesis_top_cell_area_um2": 2313.469,
+    "exp03_synthesis_top_cell_area_um2": 2372.275
+  },
+  "physical_metrics": {
+    "setup_wns_ns": -1.39535,
+    "setup_tns_ns": -62.6899,
+    "hold_wns_ns": 0.614146,
+    "hold_tns_ns": 0.0,
+    "fmax_mhz": 400.746,
+    "setup_violation_count": 63,
+    "hold_violation_count": 0,
+    "max_slew_violation_count": 0,
+    "max_cap_violation_count": 0,
+    "max_fanout_violation_count": 0,
+    "std_cell_area_um2": 5236.27,
+    "core_area_um2": 5885.64,
+    "die_area_um2": 6404.0,
+    "core_utilization_percent": 88.97,
+    "instance_count_stdcell": 545,
+    "total_instance_count": 813,
+    "timing_repair_buffer_count": 196,
+    "timing_repair_buffer_area_um2": 1741.67,
+    "clock_buffer_count": 6,
+    "clock_buffer_area_um2": 82.5792,
+    "sequential_cell_count": 35,
+    "sequential_cell_area_um2": 1024.73,
+    "multi_input_combinational_cell_count": 226,
+    "multi_input_combinational_cell_area_um2": 2239.65,
+    "clock_skew_setup_ns": 0.00657671,
+    "clock_skew_hold_ns": 0.00657671,
+    "power": {
+      "total_power_mw": 9.29217,
+      "internal_power_mw": 5.92771,
+      "switching_power_mw": 3.36445,
+      "leakage_power_uw": 0.00227576,
+      "valid_activity_vcd_provided": false,
+      "note": "Estimated by OpenROAD statistical switching model"
+    },
+    "routing_drc": {
+      "route_drc_violations": 0,
+      "unrouted_nets": 0,
+      "report_file": "5_route_drc.rpt",
+      "status": "CLEAN"
+    },
+    "gds": {
+      "file": "results/sky130hd/gcd/exp05/6_final.gds",
+      "size_bytes": 957112,
+      "status": "GENERATED"
+    }
+  },
+  "critical_path": {
+    "worst_reg2reg_path": {
+      "startpoint": "dpath.b_reg.out[2]$_DFFE_PP_",
+      "endpoint": "dpath.a_reg.out[3]$_DFFE_PP_",
+      "path_group": "core_clock",
+      "path_type": "max",
+      "data_arrival_time_ns": 2.54,
+      "data_required_time_ns": 1.15,
+      "slack_ns": -1.3954,
+      "major_cells": [
+        "sky130_fd_sc_hd__edfxtp_1 (b_reg)",
+        "sky130_fd_sc_hd__buf_6 (rebuffer215)",
+        "sky130_fd_sc_hd__xor2_4 (_119_/_151_)",
+        "sky130_fd_sc_hd__buf_4 (_119_/rebuffer323)",
+        "sky130_fd_sc_hd__nand2_2 (_119_/_152_)",
+        "sky130_fd_sc_hd__o21ai_4 (_119_/_165_)",
+        "sky130_fd_sc_hd__buf_4 (_119_/place150)",
+        "sky130_fd_sc_hd__a21oi_4 (_119_/_166_)",
+        "sky130_fd_sc_hd__o21ai_2 (_119_/_167_)",
+        "sky130_fd_sc_hd__a21o_4 (_119_/_205_)",
+        "sky130_fd_sc_hd__buf_12 (place135)",
+        "sky130_fd_sc_hd__buf_6 (rebuffer291)",
+        "sky130_fd_sc_hd__mux2i_2 (_136_)",
+        "sky130_fd_sc_hd__o21ai_1 (_138_)",
+        "sky130_fd_sc_hd__edfxtp_1 (a_reg)"
+      ]
+    }
+  }
+}
