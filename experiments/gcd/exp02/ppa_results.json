@@ -1,0 +1,80 @@
+{
+  "experiment": "exp02",
+  "title": "GCD Subtractor PPA Optimization (16-bit Ripple-Borrow Subtractor)",
+  "design": "gcd",
+  "platform": "sky130hd",
+  "flow_variant": "exp02",
+  "clock_period_target_ns": 1.10,
+  "clock_uncertainty_ns": null,
+  "clock_latency_ns": 0.290,
+  "input_delay_ns": 0.220,
+  "output_delay_ns": 0.220,
+  "rtl_sha256": "e7bcbbd3a25d13cba2690a02d8063ca4b14fa05ca5e667991872fa3aedb31185",
+  "baseline_rtl_sha256": "7330ee37a6d4f8ab6ad4b5829a35a347c996ac32e1cfcd052352ecff2705eb91",
+  "functional_verification": {
+    "testbench": "tests/rtl/tb_gcd.v",
+    "simulator": "Icarus Verilog",
+    "test_cases_run": 5,
+    "test_cases_passed": 5,
+    "combinational_equivalence_vectors": 65609,
+    "combinational_equivalence_errors": 0,
+    "status": "PASS"
+  },
+  "physical_metrics": {
+    "setup_wns_ns": -2.36185,
+    "setup_tns_ns": -72.5953,
+    "hold_wns_ns": 0.635189,
+    "hold_tns_ns": 0.0,
+    "fmax_mhz": 290.773,
+    "setup_violation_count": 81,
+    "hold_violation_count": 0,
+    "max_slew_violation_count": 0,
+    "max_cap_violation_count": 0,
+    "max_fanout_violation_count": 0,
+    "std_cell_area_um2": 4523.09,
+    "core_area_um2": 6531.26,
+    "die_area_um2": 7274.38,
+    "core_utilization_percent": 69.25,
+    "instance_count_stdcell": 518,
+    "total_instance_count": 989,
+    "timing_repair_buffer_count": 147,
+    "timing_repair_buffer_area_um2": 1333.78,
+    "clock_buffer_count": 8,
+    "clock_buffer_area_um2": 80.0768,
+    "sequential_cell_count": 35,
+    "sequential_cell_area_um2": 1023.48,
+    "multi_input_combinational_cell_count": 242,
+    "multi_input_combinational_cell_area_um2": 1945.62,
+    "clock_skew_setup_ns": 0.006194,
+    "clock_skew_hold_ns": 0.006194,
+    "power": {
+      "total_power_mw": 6.70554,
+      "internal_power_mw": 4.44156,
+      "switching_power_mw": 2.26398,
+      "leakage_power_uw": 0.00192951,
+      "valid_activity_vcd_provided": false,
+      "note": "Estimated by OpenROAD default switching activity"
+    },
+    "routing_drc": {
+      "route_drc_violations": 0,
+      "report_file": "5_route_drc.rpt",
+      "status": "CLEAN"
+    },
+    "gds": {
+      "file": "results/sky130hd/gcd/exp02/6_final.gds",
+      "size_bytes": 869992,
+      "status": "GENERATED"
+    }
+  },
+  "critical_path": {
+    "startpoint": "dpath.b_reg.out[1]$_DFFE_PP_",
+    "endpoint": "dpath.a_reg.out[15]$_DFFE_PP_",
+    "path_group": "core_clock",
+    "path_type": "max",
+    "data_arrival_time_ns": 3.49,
+    "data_required_time_ns": 1.15,
+    "slack_ns": -2.34,
+    "cause": "15-bit linear ripple-borrow chain propagation from bit 1 to bit 15"
+  }
+}
+
