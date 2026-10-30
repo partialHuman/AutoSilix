@@ -97,8 +97,15 @@ class WorkflowEngine:
             if res.state == StageState.PASS:
                 completed_stages.add(stage_name)
             elif res.state in (StageState.SKIPPED, StageState.UNSUPPORTED):
-                # Unsupported stages do not block downstream unless strictly critical
+                # SKIPPED: stage was bypassed due to failed prerequisite or fail-fast.
+                # UNSUPPORTED: required tool not installed on this host (e.g. KLayout, Magic).
+                # Both satisfy dependency checks so optional verification stages (DRC, LVS)
+                # do not block downstream reporting. Strictly required stages must return FAIL.
                 completed_stages.add(stage_name)
+                if res.state == StageState.UNSUPPORTED:
+                    self.manifest.record_warning(
+                        f"Stage '{stage_name}' marked UNSUPPORTED: {res.error_summary}"
+                    )
             else:
                 failed_stages.add(stage_name)
                 self.manifest.record_error(f"Stage '{stage_name}' failed: {res.error_summary}")

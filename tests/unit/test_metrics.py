@@ -50,3 +50,50 @@ def test_empty_or_corrupt_report_handling(tmp_path):
     # Should not raise exception
     metrics = MetricsExtractor.extract_all(tmp_path)
     assert metrics == {}
+
+
+def test_parse_routing_report(tmp_path):
+    """Routing report fields (wire_length, unrouted_nets, DRC) should be extracted."""
+    rpt_path = tmp_path / "reports" / "routing.rpt"
+    rpt_path.parent.mkdir(parents=True, exist_ok=True)
+    rpt_path.write_text("""\
+==========================================================================
+AutoSilix Routing Report
+Design: gcd
+Total wire length: 1234.56 um
+Total vias: 88
+Unrouted nets: 0
+DRC violations: 0
+Congestion: 0.00%
+==========================================================================
+""", encoding="utf-8")
+
+    metrics = MetricsExtractor.extract_all(tmp_path)
+    assert "wire_length" in metrics
+    assert metrics["wire_length"]["value"] == 1234.56
+    assert metrics["unrouted_nets"]["value"] == 0
+
+
+def test_parse_cts_report(tmp_path):
+    """CTS report: clock buffer count and skew should be parsed."""
+    rpt_path = tmp_path / "reports" / "cts.rpt"
+    rpt_path.parent.mkdir(parents=True, exist_ok=True)
+    rpt_path.write_text("""\
+AutoSilix Clock Tree Synthesis Report
+Number of clock buffers inserted: 4
+Clock skew: 0.038 ns
+""", encoding="utf-8")
+
+    metrics = MetricsExtractor.extract_all(tmp_path)
+    assert metrics["clock_buffer_count"]["value"] == 4
+    assert metrics["clock_skew"]["value"] == 0.038
+
+
+def test_parse_drc_report(tmp_path):
+    """DRC report: violation count should be parsed."""
+    rpt_path = tmp_path / "reports" / "drc.rpt"
+    rpt_path.parent.mkdir(parents=True, exist_ok=True)
+    rpt_path.write_text("Violations found: 3\n", encoding="utf-8")
+
+    metrics = MetricsExtractor.extract_all(tmp_path)
+    assert metrics["physical_drc_violations"]["value"] == 3

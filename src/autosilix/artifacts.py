@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import os
 import shutil
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -39,7 +39,7 @@ class ArtifactManager:
         if run_id:
             self.run_id = run_id
         else:
-            ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+            ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             # 6-char hex suffix for collision prevention
             rand_hex = hashlib.sha256(f"{ts}_{os.getpid()}".encode()).hexdigest()[:6]
             self.run_id = f"run_{ts}_{rand_hex}"

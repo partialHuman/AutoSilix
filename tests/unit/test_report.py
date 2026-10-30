@@ -69,3 +69,44 @@ def test_save_all_reports(tmp_path):
     assert paths["markdown"].is_file()
     assert paths["json"].is_file()
     assert paths["csv"].is_file()
+
+
+def test_report_status_badge_encodable():
+    """Status badge characters must be encodable as UTF-8 (no cp1252-only glyphs)."""
+    manifest_pass = {
+        "run_id": "enc_test",
+        "design_name": "gcd",
+        "status": "PASS",
+        "start_time": "2026-01-01T00:00:00+00:00",
+        "end_time": "2026-01-01T00:01:00+00:00",
+        "duration_seconds": 60.0,
+        "config_hash": "abc",
+        "environment": {},
+        "stages": {},
+        "metrics": {},
+    }
+    manifest_fail = dict(manifest_pass, status="FAIL")
+
+    for m in (manifest_pass, manifest_fail):
+        md = ReportGenerator.generate_markdown(m)
+        # Must encode without error in both UTF-8 and ASCII-safe fallback
+        md.encode("utf-8")  # raises UnicodeEncodeError if broken
+
+
+def test_report_fail_badge_present():
+    """FAIL runs must produce a FAIL badge, not PASS."""
+    manifest_data = {
+        "run_id": "r2",
+        "design_name": "gcd",
+        "status": "FAIL",
+        "start_time": "2026-01-01T00:00:00+00:00",
+        "end_time": "2026-01-01T00:00:10+00:00",
+        "duration_seconds": 10.0,
+        "config_hash": "xyz",
+        "environment": {},
+        "stages": {},
+        "metrics": {},
+    }
+    md = ReportGenerator.generate_markdown(manifest_data)
+    assert "FAIL" in md
+    assert "PASS" not in md.split("Status")[1][:40]

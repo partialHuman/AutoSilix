@@ -27,7 +27,7 @@ class ReportGenerator:
         git_dirty = manifest_data.get("git_dirty")
         dirty_str = " (Dirty Working Tree)" if git_dirty else ""
 
-        status_badge = "🟢 **PASS**" if status == "PASS" else "🔴 **FAIL**"
+        status_badge = "✅ **PASS**" if status == "PASS" else "❌ **FAIL**"
 
         lines = [
             "# AutoSilix Implementation Report",
