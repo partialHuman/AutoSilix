@@ -27,6 +27,8 @@ htmlcov/
 # AutoSilix Run Artifacts (do not commit large generated tool outputs)
 runs/
 results/
+# OpenROAD flow scripts working directories
+orfs_work/
 *.vcd
 *.vpd
 *.log
