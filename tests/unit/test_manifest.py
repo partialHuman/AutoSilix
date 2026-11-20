@@ -32,3 +32,19 @@ def test_manifest_lifecycle(tmp_path):
     final_loaded = Manifest.load(m.manifest_path)
     assert final_loaded["status"] == "PASS"
     assert final_loaded["schema_version"] == "1.0.0"
+
+
+def test_manifest_record_warning(tmp_path):
+    run_dir = tmp_path / "test_warn_run"
+    m = Manifest(
+        run_id="run_warn_test",
+        design_name="sequence_detector",
+        config_hash="abc12345",
+        run_dir=run_dir,
+    )
+    m.record_warning("Stage 'drc' marked UNSUPPORTED: KLayout not installed")
+    m.finalize()
+
+    loaded = Manifest.load(m.manifest_path)
+    assert len(loaded["warnings"]) == 1
+    assert "UNSUPPORTED" in loaded["warnings"][0]
