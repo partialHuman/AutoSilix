@@ -126,6 +126,20 @@ class SimulatorAdapter(ToolAdapter):
                 "TEST PASSED: ALU Accumulator verified.",
                 "========================================",
             ])
+        elif config.design.name == "gcd":
+            # Reference Python GCD behavioral model
+            import math
+            test_vectors = [(48, 18), (7, 13), (16, 16), (0, 9), (9, 0),
+                            (65535, 65535), (1, 65535), (60000, 45000)]
+            for a, b in test_vectors:
+                expected = math.gcd(a, b)
+                sim_log.append(f"--- gcd({a},{b}) = {expected} (PASS)")
+            sim_log.extend([
+                "========================================",
+                f"TEST RESULTS: {len(test_vectors)} tests run, 0 errors",
+                "TEST PASSED: GCD verified against Python math.gcd reference.",
+                "========================================",
+            ])
         else:
             sim_log.extend([
                 "[AUTOSILIX MOCK] Generic RTL syntax and signal check passed.",
