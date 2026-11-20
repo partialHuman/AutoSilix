@@ -86,7 +86,8 @@ module tb_gcd_extended;
     run_case(16,  16,  16,  "equal");
 
     // ---- Zero operands ----
-    // GCD(0, n) = n and GCD(n, 0) = n per algorithm convention
+    // GCD(0, n) = n and GCD(n, 0) = n per algorithm convention; GCD(0, 0) = 0 passthrough
+    run_case(0,   0,   0,   "zero_both");
     run_case(0,   9,   9,   "zero_a");
     run_case(9,   0,   9,   "zero_b");
     run_case(0,   1,   1,   "zero_a_one");
@@ -99,7 +100,7 @@ module tb_gcd_extended;
     // ---- Power-of-two inputs ----
     run_case(256, 64,  64,  "pow2_256_64");
     run_case(1024, 512, 512,"pow2_1k_512");
-    run_case(65536 % 65536, 32768 % 65536, 0, "trunc_zero"); // 0,32768->32768, but 0 fits 16b
+    run_case(0,   32768, 32768, "zero_a_pow2");
 
     // ---- Large co-prime (GCD=1) ----
     run_case(65521, 65519, 1, "coprime_large"); // both large primes close together
@@ -139,3 +140,4 @@ module tb_gcd_extended;
   end
 
 endmodule
+

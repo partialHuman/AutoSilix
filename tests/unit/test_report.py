@@ -72,7 +72,7 @@ def test_save_all_reports(tmp_path):
 
 
 def test_report_status_badge_encodable():
-    """Status badge characters must be encodable as UTF-8 (no cp1252-only glyphs)."""
+    """Status badge characters must be encodable in UTF-8, CP1252, and ASCII."""
     manifest_pass = {
         "run_id": "enc_test",
         "design_name": "gcd",
@@ -89,8 +89,23 @@ def test_report_status_badge_encodable():
 
     for m in (manifest_pass, manifest_fail):
         md = ReportGenerator.generate_markdown(m)
-        # Must encode without error in both UTF-8 and ASCII-safe fallback
-        md.encode("utf-8")  # raises UnicodeEncodeError if broken
+        # Must encode without error across UTF-8, Windows CP1252, and 7-bit ASCII
+        md.encode("utf-8")
+        md.encode("cp1252")
+        md.encode("ascii")
+
+
+def test_cp1252_encoding_regression_reproduction():
+    """Demonstrate that previous emoji badges raise UnicodeEncodeError under CP1252."""
+    import pytest
+
+    for emoji in ["\U0001f7e2", "\U0001f534", "\u2705", "\u274c"]:
+        with pytest.raises(UnicodeEncodeError):
+            emoji.encode("cp1252")
+
+    # Pure ASCII status badges never raise
+    assert "[PASS]".encode("cp1252") == b"[PASS]"
+    assert "[FAIL]".encode("cp1252") == b"[FAIL]"
 
 
 def test_report_fail_badge_present():
