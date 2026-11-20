@@ -1,0 +1,153 @@
+{
+  "experiment": "exp06",
+  "title": "Two-Stage 8-bit Split Pipelined Arithmetic Architecture with Decoupled Output Path",
+  "design": "gcd",
+  "platform": "sky130hd",
+  "flow_variant": "exp06",
+  "clock_period_target_ns": 1.1,
+  "clock_uncertainty_ns": null,
+  "clock_latency_ns": 0.29,
+  "input_delay_ns": 0.22,
+  "output_delay_ns": 0.22,
+  "rtl_sha256": "f548eba9b5b2c65e598be6c497e7bbcab19334786fd2306cc89b6bf5f497a4c9",
+  "rtl_sha256_note": "SHA-256 of experiments/gcd/exp06/gcd.v after CRLF->LF normalization. The physical run below was executed on the previous revision (physical_run_rtl_sha256); the current revision differs from it only in comments (verified token-identical with comments and whitespace stripped), so the physical results apply to the current RTL.",
+  "physical_run_rtl_sha256": "47b002d333c33d36faa746d5c7c4f8184dc7e01bbe1d398fccc30dc4b771da0c",
+  "baseline_rtl_sha256": "7330ee37a6d4f8ab6ad4b5829a35a347c996ac32e1cfcd052352ecff2705eb91",
+  "timing_closed": false,
+  "timing_closed_note": "The 1.10 ns target has NOT been met. Measured detailed-placement WNS is -1.2638 ns (minimum period 2.36 ns). No routed result exists.",
+  "functional_verification": {
+    "status": "PARTIAL: Python-model, exhaustive-arithmetic and post-synthesis netlist checks PASS; revised Verilog testbench not yet executed",
+    "directed_cases": 26,
+    "rtl_simulation": {
+      "testbench": "experiments/gcd/exp06/tb_gcd_exp06.v",
+      "simulator": "Icarus Verilog (iverilog -g2012)",
+      "revised_testbench_status": "NOT_RUN: no Verilog simulator was available in the review environment. Run it and record the printed 'ALL TESTS PASSED' line before relying on it.",
+      "previous_testbench_result_reported_by_project_owner": "24 directed + 1000 random + reset-recovery check passed (superseded testbench; it did not check backpressure stability, held req_val, latency, or reset from each state)"
+    },
+    "python_model": {
+      "script": "experiments/gcd/exp06/verify_exp06.py",
+      "nature": "hand-written cycle-accurate transliteration of gcd.v; does not execute the Verilog",
+      "reference": "hand-derived literals, math.gcd and modulo-based Euclid",
+      "seed": 42,
+      "directed_cases": 26,
+      "backpressure_cases": 6,
+      "chained_pairs": 6,
+      "reset_scenarios": 162,
+      "boundary_cases": 144,
+      "random_vectors": 10000,
+      "exhaustive_8bit_pairs": 65536,
+      "requests_accepted": 76050,
+      "responses_checked": 75887,
+      "latency_checks": 75887,
+      "stability_checks": 24167,
+      "clock_cycles": 13087071,
+      "errors": 0,
+      "status": "PASS"
+    },
+    "exhaustive_arithmetic_check": {
+      "tool": "experiments/gcd/exp06/verification/exhaustive_split_sub.c",
+      "scope": "split-subtractor equations of gcd.v transcribed with Verilog widths; all 2^32 (a,b) pairs; borrow_final, 16-bit difference and the swap/subtract write-back compared with plain integer arithmetic",
+      "pairs_checked": 4294967296,
+      "mismatches": 0,
+      "status": "PASS"
+    },
+    "post_synthesis_netlist_simulation": {
+      "tool": "experiments/gcd/exp06/verification/gate_level_tb.c",
+      "dut": "ORFS 1_2_yosys.v (Yosys netlist of the previous gcd.v revision) modelled in C by gen_netlist_model.py",
+      "scenarios": "26 directed, backpressure, held req_val, reset at every cycle offset, 10000 randomized-timing vectors, 589,824-transaction high-byte/borrow sweep, 144 boundary pairs, random power-up state",
+      "transactions_checked": 600337,
+      "latency_checks": 600337,
+      "mismatches": 0,
+      "mutation_check": "60 of 60 single-gate output inversions were detected",
+      "status": "PASS",
+      "limitation": "functional only; does not check timing, and is not a substitute for RTL simulation"
+    },
+    "shared_testbench_note": "tests/rtl/tb_gcd_extended.v is NOT applicable to Exp06 as written: its 5,000-cycle per-case cap is exceeded by 4 of its 26 cases (coprime_large, one_max, max_one, small_large_3 need 43,695 to 131,075 cycles at 2 cycles per step). It was not modified. The Baseline-Exp05 RTL also performs one swap/subtract step per cycle (same 3-state FSM, no pipeline), so by step count the same four cases would need 21,847 to 65,537 cycles on those designs and would also exceed the 5,000-cycle cap; the file's 'compatible with baseline, exp01-exp05' header therefore looks unverified. This was inferred from step counts, not by simulation."
+  },
+  "architecture_details": {
+    "pipeline_stages": 2,
+    "split_subtractor": "8-bit low byte in Stage 1 + 8-bit high byte with borrow-in in Stage 2",
+    "output_path_isolation": "resp_msg tapped directly from a_reg, bypassing subtractor",
+    "pipeline_flip_flops_added": 41,
+    "declared_flip_flops_rtl": 75,
+    "redundant_pipeline_copy_flops": 32,
+    "redundant_pipeline_copy_note": "pipe_a_hi, pipe_b_hi, pipe_a_lo, pipe_b_lo always equal the matching bytes of a_reg/b_reg in STAGE2 (a_reg/b_reg are not written in STAGE1). Functionally redundant; retained unchanged because the timing effect of removing them has not been measured.",
+    "cycles_per_subtract_or_swap_step": 2,
+    "latency_accept_to_resp_val_edges": "2*n + 2, n = number of subtract/swap steps"
+  },
+  "analytical_estimates_historical": {
+    "status": "SUPERSEDED. Pre-implementation analytical estimates, never measured. They are retained only for history and must not be quoted as results.",
+    "stage1_wns_ns": -0.01,
+    "stage2_wns_ns": -0.4,
+    "output_wns_ns": 0.35,
+    "effective_fmax_mhz": 650.0,
+    "projected_cell_area_um2": 5400.0,
+    "projected_total_power_mw": 9.8,
+    "original_hardware_simulation_status_text": "Blocked locally pending Docker Desktop service restart; 100% verified via cycle-accurate Python golden model across 10,026 vectors"
+  },
+  "synthesis_measured": {
+    "stage": "Yosys synthesis (ORFS 1_2_yosys / 1_synth)",
+    "tool_note": "Yosys 0.68+post as recorded in the netlist header",
+    "cell_count": 538,
+    "cell_area_um2": 4133.9648,
+    "sequential_area_um2": 1541.4784,
+    "flip_flop_count": 77,
+    "flip_flop_note": "75 declared in RTL; Yosys FSM re-encoded the 2-bit state as 4 one-hot flops (+2).",
+    "latch_cells_mapped": 0,
+    "latch_warnings": "4 'Latch inferred' warnings, all on $paramod\\_80_lcu_han_carlson (WIDTH=8 and WIDTH=9), a Yosys techmap helper module; none originate in gcd.v and the final netlist contains no latch cells.",
+    "synth_check_problems": 0
+  },
+  "placement_measured": {
+    "stage": "detailed placement (ORFS 3_5_place_dp); ideal clock, no CTS, no routing",
+    "setup_wns_ns": -1.2638,
+    "setup_tns_ns": -67.6511,
+    "hold_wns_ns": 0.444847,
+    "min_clock_period_ns": 2.36,
+    "fmax_mhz": 423.048,
+    "setup_violation_count": 84,
+    "hold_violation_count": 0,
+    "instance_area_um2": 6073.32,
+    "instance_count": 865,
+    "core_utilization_percent": 58.3063,
+    "die_area_um2": 11299.7,
+    "core_area_um2": 10416.2,
+    "power": {
+      "total_power_mw": 5.96585,
+      "internal_power_mw": 4.45861,
+      "switching_power_mw": 1.50723,
+      "leakage_power_uw": 0.00238457,
+      "note": "Placement-stage statistical estimate with an ideal clock (no clock-tree power); not comparable with finish-stage power of earlier experiments."
+    },
+    "port_buffers": "ORFS inserted 35 input and 18 output buffers, all sky130_fd_sc_hd__clkdlybuf4s50_1 (about 0.40-0.48 ns each)",
+    "critical_path": {
+      "kind": "reg2reg (core_clock)",
+      "startpoint": "pipe_b_hi[5]",
+      "endpoint": "b_reg[7]",
+      "data_arrival_time_ns": 2.55,
+      "data_required_time_ns": 1.29,
+      "slack_ns": -1.26,
+      "structure": "pipe_b_hi[5] -> xor2 -> nor3b -> a211oi -> a221o -> a21o_2 (fanout 14) -> buf_4 (fanout 9) -> nand2 -> a221oi -> b_reg[7]/D. The report names internal nets only as _NNN_; by structure and fanout the fanout-14 signal is the high-byte final borrow (borrow_final) acting as the swap/subtract select of the a_reg/b_reg write-back muxes (inferred, not stated by the report).",
+      "reading": "Inferred: the limiter is the high-byte borrow chain plus the high-fanout write-back select, not the stage-1 low-byte subtract. A data-path profile of the 8-bit subtract itself is not separable from this report."
+    },
+    "req_rdy_output_path": {
+      "kind": "output (vclk_core_clock)",
+      "startpoint": "state[0] flop",
+      "endpoint": "req_rdy",
+      "data_arrival_time_ns": 1.33,
+      "data_required_time_ns": 1.17,
+      "slack_ns": -0.16,
+      "structure": "state[0] flop (dfxtp_4, fanout 5, 0.36 ns) -> buf_4 driving 11 loads (0.20 ns) -> clkdlybuf4s50_1 output port buffer (0.48 ns). Output budget is 1.10 ns period minus 0.22 ns output delay.",
+      "status": "VIOLATING"
+    },
+    "resp_msg_output_path": {
+      "status": "reported by the project owner as meeting timing; not individually verifiable from the provided reports, which list only the worst path per group (req_rdy, -0.16 ns). resp_msg slack is therefore >= -0.16 ns."
+    }
+  },
+  "routed_measured": null,
+  "routed_measured_note": "No routed (CTS/global-route/finish) result exists for Exp06. No routed area, power or timing value is recorded or implied.",
+  "comparability_warnings": [
+    "Baseline-Exp05 columns in the comparison tables are finish-stage (6_report) values; Exp06 values are detailed-placement values. They are different flow stages and must not be treated as like-for-like.",
+    "Exp06 floorplan differs from Exp05 (die 11,299.7 vs 6,404.0 um^2; utilization 58.3% vs 88.97%), so area and utilization are not directly comparable.",
+    "Exp06 needs 2 clock cycles per subtract/swap step. At the measured 2.36 ns minimum period that is 4.72 ns per step versus 2.50 ns for Exp05 (1 cycle at 400.746 MHz, finish stage), i.e. about 1.9x slower per iteration if the placement-stage period were representative."
+  ]
+}
